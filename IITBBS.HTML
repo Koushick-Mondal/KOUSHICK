@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Intelligence Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0a2540;
+            --secondary: #00d4ff;
+            --accent: #ff6b6b;
+            --success: #4cd964;
+            --warning: #ffd166;
+            --dark: #1a1a2e;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --border-radius: 20px;
+            --border-radius-sm: 12px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(100, 126, 234, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        .app-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-secondary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-sm);
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--gradient-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Page System */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Dashboard Page */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-secondary);
+        }
+
+        .header-title h1 {
+            font-size: 32px;
+            font-weight: 800;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title p {
+            color: var(--gray);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .control-btn:hover::before {
+            left: 100%;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn.primary {
+            background: var(--gradient-secondary);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .control-btn.primary:hover {
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Filters Section */
+        .filters-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .filter-btn:hover::after {
+            width: 100px;
+            height: 100px;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--secondary);
+        }
+
+        .filter-btn.active {
+            background: var(--gradient-secondary);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Key Indicators */
+        .key-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .key-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .key-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .key-item:hover::before {
+            opacity: 1;
+        }
+
+        .key-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .key-color {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .key-color.target-2030 {
+            background: var(--gradient-secondary);
+        }
+
+        .key-color.target-2025 {
+            background: var(--gradient-accent);
+        }
+
+        .key-text {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .key-value {
+            font-size: 24px;
+            font-weight: 800;
+            margin-left: auto;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .chart-container:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .chart-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-action-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chart-action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(15deg);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        /* Data Table */
+        .data-table-container {
+            margin-top: 30px;
+            overflow: hidden;
+            border-radius: var(--border-radius-sm);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--light);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-table td {
+            padding: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.3s;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .carbon-badge {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .carbon-badge.high {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .carbon-badge.medium {
+            background: rgba(255, 209, 102, 0.2);
+            color: #ffd166;
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .carbon-badge.low {
+            background: rgba(76, 217, 100, 0.2);
+            color: #4cd964;
+            border: 1px solid rgba(76, 217, 100, 0.3);
+        }
+
+        /* Insights Panel */
+        .insights-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            height: fit-content;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .insights-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .insights-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .insights-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .insight-item {
+            padding: 20px;
+            border-left: 4px solid var(--secondary);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .insight-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .insight-item:hover::before {
+            left: 100%;
+        }
+
+        .insight-item:hover {
+            transform: translateX(5px);
+        }
+
+        .insight-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .insight-item.success {
+            border-left-color: var(--success);
+        }
+
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .insight-desc {
+            font-size: 14px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            margin-top: 30px;
+        }
+
+        .progress-item {
+            margin-bottom: 25px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            font-weight: 600;
+        }
+
+        .progress-value {
+            font-weight: 700;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .progress-fill.target-2025 {
+            background: var(--gradient-accent);
+        }
+
+        .progress-fill.target-2030 {
+            background: var(--gradient-secondary);
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Other Pages */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 800;
+            background: var(--gradient-secondary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius-sm);
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .page-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .card-content {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .dashboard-footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            font-size: 14px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Particle Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite linear;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .app-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-links {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .key-indicators {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <div class="particles" id="particles"></div>
+
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="app-navigation">
+            <div class="nav-brand">
+                <div class="nav-logo">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="nav-title">Carbon Intelligence</div>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-page="dashboard">
+                    <i class="fas fa-chart-bar"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link" data-page="projects">
+                    <i class="fas fa-building"></i>
+                    Projects
+                </a>
+                <a href="#" class="nav-link" data-page="analytics">
+                    <i class="fas fa-chart-line"></i>
+                    Analytics
+                </a>
+                <a href="#" class="nav-link" data-page="reports">
+                    <i class="fas fa-file-alt"></i>
+                    Reports
+                </a>
+                <a href="#" class="nav-link" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            </div>
+        </nav>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <!-- Header -->
+            <header class="dashboard-header fade-in">
+                <div class="header-title">
+                    <h1>Carbon Intelligence Dashboard</h1>
+                    <p>
+                        <i class="fas fa-chart-line"></i>
+                        Intensity measured by kgCO<sub>2</sub>/m<sup>2</sup>
+                    </p>
+                </div>
+                <div class="header-controls">
+                    <button class="control-btn" data-page="filters">
+                        <i class="fas fa-sliders-h"></i>
+                        Advanced Filters
+                    </button>
+                    <button class="control-btn" data-page="time-analysis">
+                        <i class="fas fa-calendar-alt"></i>
+                        Time Analysis
+                    </button>
+                    <button class="control-btn primary" data-page="export">
+                        <i class="fas fa-download"></i>
+                        Export Report
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filters -->
+            <section class="filters-section fade-in">
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-building"></i>
+                        Project Type
+                    </div>
+                    <div class="filter-options">
+                        <button class="filter-btn active">All Projects</button>
+                        <button class="filter-btn">Refurbishment</button>
+                        <button class="filter-btn">New Build</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-tasks"></i>
+                        Project Status
+                    </div>
+                    <div class="filter-options">
+                        <button class="filter-btn active">Complete</button>
+                        <button class="filter-btn">Estimate</button>
+                        <button class="filter-btn">In Progress</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">
+                        <i class="fas fa-chart-line"></i>
+                        Analysis Metric
+                    </div>
+                    <div class="filter-options">
+                        <button class="filter-btn active">Carbon Intensity</button>
+                        <button class="filter-btn">Total Emissions</button>
+                        <button class="filter-btn">Efficiency Ratio</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Indicators -->
+            <section class="key-indicators">
+                <div class="key-item fade-in" data-page="targets">
+                    <div class="key-color target-2030 float">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="key-content">
+                        <div class="key-text">2030 Carbon Target</div>
+                        <div class="key-value">500 kgCO<sub>2</sub>/m<sup>2</sup></div>
+                    </div>
+                </div>
+                <div class="key-item fade-in" data-page="targets" style="animation-delay: 0.5s;">
+                    <div class="key-color target-2025 float">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="key-content">
+                        <div class="key-text">2025 Carbon Target</div>
+                        <div class="key-value">600 kgCO<sub>2</sub>/m<sup>2</sup></div>
+                    </div>
+                </div>
+                <div class="key-item fade-in" data-page="projects" style="animation-delay: 1s;">
+                    <div class="key-color float" style="background: var(--gradient);">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="key-content">
+                        <div class="key-text">On Target Projects</div>
+                        <div class="key-value">8/14</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Left Column - Main Chart -->
+                <div class="chart-container fade-in">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Embodied Carbon Intensity Analysis</h2>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" data-page="fullscreen-chart">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                            <button class="chart-action-btn" data-page="analytics">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="chart-action-btn" data-page="chart-settings">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="carbonChart"></canvas>
+                    </div>
+                    
+                    <!-- Data Table -->
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Carbon Intensity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-page="project-detail">
+                                    <td>Oceanview Tower</td>
+                                    <td>New Build</td>
+                                    <td>Complete</td>
+                                    <td><span class="carbon-badge high">675</span></td>
+                                </tr>
+                                <tr data-page="project-detail">
+                                    <td>Heritage Renovation</td>
+                                    <td>Refurbishment</td>
+                                    <td>Complete</td>
+                                    <td><span class="carbon-badge high">677</span></td>
+                                </tr>
+                                <tr data-page="project-detail">
+                                    <td>Greenfield Complex</td>
+                                    <td>New Build</td>
+                                    <td>Estimate</td>
+                                    <td><span class="carbon-badge medium">550</span></td>
+                                </tr>
+                                <tr data-page="project-detail">
+                                    <td>City Center Retrofit</td>
+                                    <td>Refurbishment</td>
+                                    <td>Complete</td>
+                                    <td><span class="carbon-badge medium">551</span></td>
+                                </tr>
+                                <tr data-page="project-detail">
+                                    <td>Eco Residential</td>
+                                    <td>New Build</td>
+                                    <td>Estimate</td>
+                                    <td><span class="carbon-badge medium">552</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Column - Insights -->
+                <div class="insights-panel fade-in">
+                    <div class="insights-header">
+                        <div class="insights-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h2 class="insights-title">Intelligent Insights</h2>
+                    </div>
+                    
+                    <div class="insight-item" data-page="high-carbon">
+                        <div class="insight-title">
+                            <i class="fas fa-exclamation-triangle" style="color: var(--accent);"></i>
+                            High Carbon Projects Alert
+                        </div>
+                        <div class="insight-desc">
+                            4 projects exceed the 2025 target of 600 kgCO<sub>2</sub>/m<sup>2</sup>. Immediate action recommended.
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item success" data-page="refurbishment-analysis">
+                        <div class="insight-title">
+                            <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                            Refurbishment Advantage
+                        </div>
+                        <div class="insight-desc">
+                            Refurbishment projects show 15% lower carbon intensity on average compared to new builds.
+                        </div>
+                    </div>
+                    
+                    <div class="insight-item warning" data-page="new-build-analysis">
+                        <div class="insight-title">
+                            <i class="fas fa-chart-line" style="color: var(--warning);"></i>
+                            New Build Challenge
+                        </div>
+                        <div class="insight-desc">
+                            New build projects are 40% more likely to exceed carbon targets. Consider alternative materials.
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Section -->
+                    <div class="progress-section">
+                        <div class="progress-item" data-page="progress">
+                            <div class="progress-header">
+                                <span class="progress-label">2025 Target Progress</span>
+                                <span class="progress-value">64%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill target-2025" style="width: 64%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-item" data-page="progress">
+                            <div class="progress-header">
+                                <span class="progress-label">2030 Target Progress</span>
+                                <span class="progress-value">42%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill target-2030" style="width: 42%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="dashboard-footer">
+                <p>Carbon Intelligence Dashboard &copy; 2023 | Advanced analytics for sustainable construction</p>
+            </footer>
+        </div>
+
+        <!-- Other Pages -->
+        
+        <!-- Projects Page -->
+        <div id="projects" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Project Portfolio</h1>
+                    <p class="page-subtitle">Detailed view of all construction projects and their carbon metrics</p>
+                </div>
+                <button class="back-btn" data-page="dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+            
+            <div class="page-content">
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-secondary);">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <h2 class="card-title">Active Projects</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>View and manage all active construction projects with real-time carbon tracking and performance metrics.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-accent);">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h2 class="card-title">Project Analytics</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Deep dive into project-specific carbon analytics, trends, and comparative performance against targets.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient);">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <h2 class="card-title">Add New Project</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Register a new construction project and set up carbon tracking from the initial planning phase.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Advanced Analytics</h1>
+                    <p class="page-subtitle">Deep insights into carbon performance trends and predictive analysis</p>
+                </div>
+                <button class="back-btn" data-page="dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+            
+            <div class="page-content">
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-secondary);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h2 class="card-title">Trend Analysis</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Explore carbon intensity trends over time and identify patterns across different project types and regions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-accent);">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <h2 class="card-title">Carbon Forecasting</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Predict future carbon emissions based on current trends and planned construction activities.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient);">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <h2 class="card-title">Comparative Analysis</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Compare carbon performance across projects, materials, and construction methodologies.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div id="reports" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Reports & Documentation</h1>
+                    <p class="page-subtitle">Generate and access detailed carbon performance reports</p>
+                </div>
+                <button class="back-btn" data-page="dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+            
+            <div class="page-content">
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-secondary);">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <h2 class="card-title">Carbon Performance Reports</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Generate comprehensive PDF reports on carbon performance for stakeholders and regulatory compliance.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient-accent);">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h2 class="card-title">Visual Dashboards</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Create customized visual dashboards for different audiences and presentation needs.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--gradient);">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h2 class="card-title">Data Export</h2>
+                        </div>
+                        <div class="card-content">
+                            <p>Export raw carbon data in multiple formats for further analysis in external tools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Pages for Dashboard Interactions -->
+        <div id="targets" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Carbon Targets</h1>
+                    <p class="page-subtitle">Manage and track progress against carbon reduction targets</p>
+                </div>
+                <button class="back-btn" data-page="dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+            
+            <div class="page-content">
+                <div class="content-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--gradient-secondary);">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h2 class="card-title">Target Management</h2>
+                    </div>
+                    <div class="card-content">
+                        <p>Set and manage carbon reduction targets for different timeframes and project types. Monitor progress with detailed metrics and adjust strategies as needed to stay on track.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="high-carbon" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">High Carbon Projects</h1>
+                    <p class="page-subtitle">Identify and address projects with elevated carbon emissions</p>
+                </div>
+                <button class="back-btn" data-page="dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </button>
+            </div>
+            
+            <div class="page-content">
+                <div class="content-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--gradient-accent);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2 class="card-title">Intervention Strategies</h2>
+                    </div>
+                    <div class="card-content">
+                        <p>Review projects exceeding carbon targets and implement intervention strategies. Explore alternative materials, construction methods, and carbon offset options to bring projects back on target.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add more pages as needed -->
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create particle background
+            createParticles();
+            
+            // Initialize Chart
+            const ctx = document.getElementById('carbonChart').getContext('2d');
+            const carbonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Oceanview', 'Heritage', 'Greenfield', 'City Center', 'Eco Res', 'Metro Retro', 'Sky Garden'],
+                    datasets: [
+                        {
+                            label: 'Carbon Intensity (kgCO₂/m²)',
+                            data: [675, 677, 550, 551, 552, 559, 569],
+                            backgroundColor: [
+                                'rgba(255, 107, 107, 0.8)',
+                                'rgba(255, 107, 107, 0.8)',
+                                'rgba(255, 209, 102, 0.8)',
+                                'rgba(255, 209, 102, 0.8)',
+                                'rgba(255, 209, 102, 0.8)',
+                                'rgba(76, 217, 100, 0.8)',
+                                'rgba(76, 217, 100, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 107, 107, 1)',
+                                'rgba(255, 107, 107, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(255, 209, 102, 1)',
+                                'rgba(76, 217, 100, 1)',
+                                'rgba(76, 217, 100, 1)'
+                            ],
+                            borderWidth: 2,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 37, 64, 0.9)',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 15,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Carbon Intensity: ${context.parsed.y} kgCO₂/m²`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'kgCO₂/m²',
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            max: 800
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            // Add target lines
+            const targetLine2025 = {
+                id: 'targetLine2025',
+                beforeDraw(chart, args, options) {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { y } } = chart;
+                    const targetValue = 600;
+                    const yPosition = y.getPixelForValue(targetValue);
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(left, yPosition);
+                    ctx.lineTo(right, yPosition);
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#ff6b6b';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                    
+                    // Add label
+                    ctx.save();
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 12px Inter';
+                    ctx.fillText('2025 Target: 600', right - 120, yPosition - 10);
+                    ctx.restore();
+                }
+            };
+
+            const targetLine2030 = {
+                id: 'targetLine2030',
+                beforeDraw(chart, args, options) {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { y } } = chart;
+                    const targetValue = 500;
+                    const yPosition = y.getPixelForValue(targetValue);
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(left, yPosition);
+                    ctx.lineTo(right, yPosition);
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#00d4ff';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                    
+                    // Add label
+                    ctx.save();
+                    ctx.fillStyle = '#00d4ff';
+                    ctx.font = 'bold 12px Inter';
+                    ctx.fillText('2030 Target: 500', right - 120, yPosition - 10);
+                    ctx.restore();
+                }
+            };
+
+            carbonChart.options.plugins.annotation = {
+                annotations: {
+                    targetLine2025,
+                    targetLine2030
+                }
+            };
+            carbonChart.update();
+
+            // Page Navigation System
+            const pages = document.querySelectorAll('.page');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const interactiveElements = document.querySelectorAll('[data-page]');
+            
+            // Function to show a specific page
+            function showPage(pageId) {
+                // Hide all pages
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Show the selected page
+                const targetPage = document.getElementById(pageId);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+                
+                // Update active nav link
+                navLinks.forEach(link => {
+                    if (link.getAttribute('data-page') === pageId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }
+            
+            // Add click event listeners to all interactive elements
+            interactiveElements.forEach(element => {
+                element.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-page');
+                    if (targetPage) {
+                        showPage(targetPage);
+                    }
+                });
+            });
+            
+            // Add click event listeners to navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetPage = this.getAttribute('data-page');
+                    showPage(targetPage);
+                });
+            });
+
+            // Interactive filter buttons
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from siblings
+                    const parent = this.parentElement;
+                    const siblings = parent.querySelectorAll('.filter-btn');
+                    siblings.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Add visual feedback
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 150);
+                    
+                    // In a real app, we would filter data here
+                    console.log(`Filter changed to: ${this.textContent}`);
+                });
+            });
+
+            // Animate progress bars on scroll
+            const progressBars = document.querySelectorAll('.progress-fill');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const width = entry.target.style.width;
+                        entry.target.style.width = '0%';
+                        setTimeout(() => {
+                            entry.target.style.width = width;
+                        }, 500);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            progressBars.forEach(bar => observer.observe(bar));
+
+            // Add hover effects to key items
+            const keyItems = document.querySelectorAll('.key-item');
+            keyItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Create particle background
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                const particleCount = 50;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    // Random properties
+                    const size = Math.random() * 6 + 2;
+                    const posX = Math.random() * 100;
+                    const posY = Math.random() * 100;
+                    const opacity = Math.random() * 0.5 + 0.1;
+                    const animationDelay = Math.random() * 15;
+                    const animationDuration = Math.random() * 20 + 10;
+                    
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${posX}%`;
+                    particle.style.top = `${posY}%`;
+                    particle.style.opacity = opacity;
+                    particle.style.animationDelay = `${animationDelay}s`;
+                    particle.style.animationDuration = `${animationDuration}s`;
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            }
+
+            // Add floating animation to elements with delay
+            const floatElements = document.querySelectorAll('.float');
+            floatElements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.5}s`;
+            });
+        });
+    </script>
+</body>
+</html>
